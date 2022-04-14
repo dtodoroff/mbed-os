@@ -22,12 +22,10 @@
 #if defined(TARGET_RENESAS)
 
 #if defined(__ARMCC_VERSION)
-    extern uint32_t Image$$ARM_LIB_STACK$$Base[];
-    extern uint32_t Image$$ARM_LIB_STACK$$ZI$$Limit[];
-    extern uint32_t Image$$ARM_LIB_HEAP$$Base[];
-    #define INITIAL_SP            Image$$ARM_LIB_STACK$$ZI$$Limit
+    extern uint32_t               Image$$ARM_LIB_HEAP$$Base[];
+    extern uint32_t               Image$$ARM_LIB_HEAP$$ZI$$Length[];
     #define HEAP_START            Image$$ARM_LIB_HEAP$$Base
-    #define HEAP_SIZE             (uint32_t)((uint32_t) Image$$ARM_LIB_STACK$$Base - (uint32_t) HEAP_START)
+    #define HEAP_SIZE             Image$$ARM_LIB_HEAP$$ZI$$Length
 #elif defined(__GNUC__)
     #define INITIAL_SP            (&__StackTop)
 #elif defined(__ICCARM__)

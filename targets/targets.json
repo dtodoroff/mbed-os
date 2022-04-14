@@ -9062,5 +9062,66 @@
                 "std"
             ]
         }
+    },
+    "RAXXX": {
+        "inherits": ["Target"],
+        "public": false,
+        "supported_toolchains": ["ARM", "GCC_ARM"],
+        "extra_labels": ["RENESAS", "RAXXX"],
+        "device_has": [
+            "SERIAL",
+            "SERIAL_ASYNCH",
+            "MPU"
+        ],
+        "supported_application_profiles" : ["bare-metal"],
+        "supported_c_libs": {
+            "arm": [
+                "std",
+                "small"
+            ],
+            "gcc_arm": [
+                "std",
+                "small"
+            ]
+        }
+    },
+    "VK_RA6M3": {
+        "inherits": [
+            "RAXXX"
+        ],
+        "core": "Cortex-M4F",
+        "extra_labels_add": [
+            "RA6M3",
+            "MBRA6M3"
+        ],
+        "components_add": [
+        ],
+        "device_has_add": [
+        ],
+        "device_has_remove": [
+        ],
+        "release_versions": [
+            "5"
+        ],
+        "device_name": "R7FA6M3AH",
+        "bootloader_supported": true,
+        "mbed_rom_start": "0",
+        "mbed_rom_size": "0x200000",
+        "sectors": [
+            [
+                0,
+                8192
+            ],
+            [
+                65536,
+                32768
+            ]
+        ],
+        "overrides": {
+            "network-default-interface-type": null
+        },
+        "detect_code": [
+            "C002"
+        ]
     }
 }

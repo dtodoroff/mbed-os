@@ -1,0 +1,109 @@
+#! armclang -E --target=arm-arm-none-eabi -x c -mcpu=cortex-m4
+;**************************************************
+; Copyright (c) 2017 ARM Ltd.  All rights reserved.
+;**************************************************
+
+; Scatter-file for RTX Example on Versatile Express
+
+; This scatter-file places application code, data, stack and heap at suitable addresses in the memory map.
+
+
+#include "../cmsis_nvic.h"
+
+#if !defined(MBED_APP_START)
+  #define MBED_APP_START  MBED_ROM_START
+#endif
+
+#if !defined(MBED_CONF_TARGET_BOOT_STACK_SIZE)
+/* This value is normally defined by the tools to 0x1000 for bare metal and 0x400 for RTOS */
+#if defined(MBED_BOOT_STACK_SIZE)
+#define MBED_CONF_TARGET_BOOT_STACK_SIZE MBED_BOOT_STACK_SIZE
+#else
+#define MBED_CONF_TARGET_BOOT_STACK_SIZE 0x400
+#endif
+#endif
+
+/* Round up VECTORS_SIZE to 8 bytes */
+#define VECTORS_SIZE  (((NVIC_NUM_VECTORS * 4) + 7) AND ~7)
+
+LOAD_REGION_FLASH  MBED_APP_START  MBED_APP_SIZE  
+{
+  VECTORS +0 FIXED PADVALUE 0xFFFFFFFF   ; maximum of 256 exceptions (256*4 bytes == 0x400)
+  {
+    *(.fixed_vectors, +FIRST)
+    *(.application_vectors)
+  }
+
+  VECTORS_FILL +0 FIXED FILL 0xFFFFFFFF (0x400 - ImageLength(VECTORS))
+  {
+  }
+
+  ROM_REGISTERS MBED_APP_START+0x400 FIXED PADVALUE 0xFFFFFFFF
+  {
+    bsp_rom_registers.o (.rom_registers)
+  }
+
+  ROM_REGISTERS_FILL +0 FIXED FILL 0xFFFFFFFF (0x100 - ImageLength(ROM_REGISTERS))
+  {
+  }
+
+  INIT_ARRAY +0 FIXED
+  {
+    *(.init_array)
+  }
+
+  USB_DESC_FS +0 FIXED
+  {
+    *(.usb_device_desc_fs*)
+    *(.usb_config_desc_fs*)
+    *(.usb_interface_desc_fs*)
+  }
+
+  ENTRY_CODE +0 FIXED
+  {
+    *(.entry*)
+  }
+
+
+  RO_CODE_DATA +0 FIXED
+  {
+    *(.text*,.rodata*,.constdata*)
+    .ANY(+RO)
+  }
+
+  __tz_RAM_S MBED_RAM_START EMPTY 0
+  {
+  }
+
+   DATA +0 NOCOMPRESS
+  {
+    ; Do not use *(.data*) because it will place data meant for .data_flash in this section.
+    *(.data.*)
+    *(.data)
+    *(.code_in_ram)
+
+#if !__RESERVE_NS_RAM
+    *(.ns_buffer*)
+#endif
+
+    .ANY(+RW)
+  }
+
+  RW_IRAM1 +0 NOCOMPRESS
+  {
+    *(+ZI)
+  }
+
+  NOINIT +0 UNINIT NOCOMPRESS
+  {
+    *(.bss.noinit)
+  }
+
+
+
+  ARM_LIB_HEAP  AlignExpr(+0, 16)  EMPTY  (MBED_RAM_START + MBED_RAM_SIZE - MBED_CONF_TARGET_BOOT_STACK_SIZE - 16 - AlignExpr(ImageLimit(NOINIT), 16))  { ; Heap growing up
+  }
+
+  ARM_LIB_STACK  (MBED_RAM_START + MBED_RAM_SIZE - 16)  EMPTY  -MBED_CONF_TARGET_BOOT_STACK_SIZE  { ; Stack region growing down
+  }
+}
